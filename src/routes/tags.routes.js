@@ -1,6 +1,7 @@
 const { Router } = require('express')
 const TagsController = require('../controllers/TagsController')
 var bodyparser = require('body-parser')
+const ensureAuth = require('../middlewares/ensureauth')
 
 const TagsRouter = Router()
 const tagsController = new TagsController()
@@ -16,6 +17,6 @@ function isAdmin(request,response,next) {
 } 
 */
 
-TagsRouter.get('/:user_id',/* isAdmin, */bodyparser.json(),tagsController.index)
+TagsRouter.get('/',/* isAdmin, */bodyparser.json(),ensureAuth,tagsController.index)
 
 module.exports = TagsRouter

@@ -1,15 +1,21 @@
 /* server.js é o ponto de entrada da nossa aplicação */
 require('express-async-errors')
+require('dotenv/config')
 const migrations = require('./database/sqlite/migrations')
 const AppError = require('./utils/AppError')
 const express = require('express')
 const routes = require('./routes')
+const uploadConfig = require('./configs/upload')
+const cors = require('cors')
 
 migrations()
 const app = express()
-app.use(routes)
+app.use(cors())
 app.use(express.json())
 
+app.use('/files',express.static(uploadConfig.UPLOADS_FOLDER))
+
+app.use(routes)
 app.use((error,request,response,next)=>{
     if(error instanceof AppError) {
         return response.status(error.statuscode).json({
@@ -40,7 +46,7 @@ app.get('/message/:id/:user',(request,response)=>{
 }) 
 */
 
-const PORT = 8765
+const PORT = process.env.SERVER_PORT||3334
 app.listen(PORT,()=>{
     console.log(`Server is running on PORT ${PORT}`)
 })

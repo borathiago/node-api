@@ -3,7 +3,7 @@ const knex = require('../database/knex')
 class NotesController {
     async create(request,response) {
         const { title,description,tags,links } = request.body
-        const { user_id } = request.params
+        const user_id = request.user.id
         const [ note_id ] = await knex('notes').insert({ title, description, user_id })
         const insertLinks = links.map(link=>{
             return {
@@ -20,7 +20,7 @@ class NotesController {
             }
         })
         await knex('tags').insert(insertTags)
-        response.status(201).json()
+        return response.status(201).json()
     }
     async show(request,response) {
         const { id } = request.params
@@ -35,7 +35,8 @@ class NotesController {
         response.status(200).json()
     }
     async index(request,response) {
-        const { title,user_id,tags } = request.query
+        const { title,tags } = request.query
+        const user_id = request.user.id
         let notes
         if(tags) {
             const filterTags = tags.split(',').map(tag=>tag.trim())
@@ -45,6 +46,7 @@ class NotesController {
             .whereLike('notes.title',`%${title}%`)
             .whereIn('name',filterTags)
             .innerJoin('notes','notes.id','tags.note_id')
+            .groupBy('notes.id')
             .orderBy('notes.title')
         } else {
             notes = await knex('notes').where({user_id}).whereLike('title',`%${title}%`).orderBy('title')
@@ -57,7 +59,7 @@ class NotesController {
                 tags: noteTags
             }   
         })
-        return response.status(200).json({notesWithTags})
+        return response.status(200).json(notesWithTags)
     }
 }
 

@@ -1,9 +1,15 @@
 const { Router } = require('express')
 const UsersController = require('../controllers/UsersController')
+const UserAvatarController = require('../controllers/UserAvatarController')
 var bodyparser = require('body-parser')
+const ensureAuth = require('../middlewares/ensureauth')
+const multer = require('multer')
+const uploadConfig = require('../configs/upload')
 
 const UserRouter = Router()
+const upload = multer(uploadConfig.MULTER)
 const usersController = new UsersController()
+const userAvatarController = new UserAvatarController()
 /* 
 function isAdmin(request,response,next) {
     console.log('Você passou pelo middleware')
@@ -16,7 +22,10 @@ function isAdmin(request,response,next) {
 } 
 */
 
-UserRouter.post('/',/* isAdmin, */bodyparser.json(),usersController.create)
-UserRouter.put('/:id',bodyparser.json(),usersController.update)
+UserRouter.use(bodyparser.json())
+
+UserRouter.post('/',/* isAdmin, */usersController.create)
+UserRouter.put('/',ensureAuth,usersController.update)
+UserRouter.patch('/avatar',ensureAuth,upload.single('avatar'),userAvatarController.update)
 
 module.exports = UserRouter
